@@ -64,7 +64,7 @@ class ImageProcessor:
 
         #Add dimension
         for i in range(addDimension):
-            tensorisedImage.unsqueeze(0)
+            tensorisedImage = tensorisedImage.unsqueeze(0)
     
         return tensorisedImage
 
