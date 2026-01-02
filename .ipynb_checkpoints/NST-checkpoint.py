@@ -10,9 +10,9 @@ from LPIPS import LPIPS
 import time
 
 class NST:
-    def __init__(self, content_path, style_paths, prebuild_encoder = None, prebuild_decoder = None):
-        self.content_path = content_path
-        self.style_paths = style_paths #Tuple
+    def __init__(self, prebuild_encoder = None, prebuild_decoder = None):
+        self.content_path = None
+        self.style_paths = ()
         self.encoder = None
         self.decoder = None
         self.prebuild_encoder = prebuild_encoder
@@ -23,6 +23,11 @@ class NST:
         self.stylisedTensor = None
         self.start = None
         self.end = None
+        self.tensorisedContent = None
+        self.tensorisedStyles = None
+
+    def saveImage(self, name="Image"):
+        plt.imsave(f"output/{name}.jpg", self.stylisedImage)
 
     def evaluate(self):
         lpips = LPIPS()
@@ -37,6 +42,22 @@ class NST:
             
         return round(score,3), f"{timePassed:.3f} ms"
 
+    def reset(self):
+        self.tensorisedContent = None
+        self.tensorisedStyles = None
+        self.content = None
+        self.styles = ()
+        self.stylisedImage = None
+        self.stylisedTensor = None
+        self.content_path = None
+        self.style_paths = ()
+
+
+    def fit(self, content_path, styles_path):
+        self.reset()
+        self.content_path = content_path
+        self.style_paths = styles_path
+        self.processor(1)
 
     #Pre-processing of image
     def processor(self, addDimension = 0):
@@ -54,10 +75,9 @@ class NST:
         styles = self.styles
 
         #Convert to tensor
-        content = content.tensorisedImage(addDimension)
-        styles = tuple( s.tensorisedImage(addDimension) for s in styles)
+        self.tensorisedContent = content.tensorisedImage(addDimension)
+        self.tensorisedStyles = tuple( s.tensorisedImage(addDimension) for s in styles)
 
-        return content, styles
 
 
     def encodeAll (self, content, styles):
@@ -103,16 +123,14 @@ class NST:
         plt.show()
 
     #Call pipeline and test time
-    def pipeline(self, callback):
-        #Preprocess image
-        c,s = self.processor(1)
+    def pipeline(self, callback, addDimension = 1):
         self.start = time.perf_counter()
         #Encode image
-        n_c,n_s = encodeAll(c,s)
+        n_c,n_s = self.encodeAll(self.tensorisedContent,self.tensorisedStyles)
         #Transformer
         features = callback(n_c,n_s)
         #Decode
-        decoding(features)
+        self.decoding(features)
         self.end = time.perf_counter()
         
     #Load prebuild model
