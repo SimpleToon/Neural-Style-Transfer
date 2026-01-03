@@ -21,3 +21,5 @@ __pycache__/ImageProcessor.cpython-312.pyc
 .ipynb_checkpoints/NST-checkpoint.py
 .DS_Store
 .DS_Store
+/archive
+/coco
