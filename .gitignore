@@ -30,3 +30,4 @@ EncoderTesting/.ipynb_checkpoints/NST-checkpoint.py
 /EncoderTesting/__pycache__
 *.pyc
 *.pyc
+.DS_Store
