@@ -45,7 +45,7 @@ class NST:
         else: 
             timePassed = None
             
-        return round(score,3), f"{timePassed:.3f} ms"
+        return round(score,3), timePassed
 
     def reset(self):
         self.tensorisedContent = None
@@ -95,6 +95,10 @@ class NST:
     def decoding(self, output):
         #Decode output
         decodedOutput = self.decoder(output)
+        d1,d2,h,w = decodedOutput.shape
+        if h != self.content.imageSize or w != self.content.imageSize:
+            decodedOutput = nn.functional.interpolate(decodedOutput, size=(self.content.imageSize, self.content.imageSize), mode="bilinear", align_corners=False)
+            
         #Convert back to image - remove tensor, convert to numpy, and restructure
         self.stylisedTensor = decodedOutput.detach().clamp(0, 1)
         self.stylisedImage = self.stylisedTensor.squeeze(0).permute(1,2,0).cpu().numpy()

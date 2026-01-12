@@ -23,3 +23,10 @@ __pycache__/ImageProcessor.cpython-312.pyc
 .DS_Store
 /archive
 /coco
+/EncoderTesting/.ipynb_checkpoints
+EncoderTesting/.ipynb_checkpoints/NST-checkpoint.py
+/EncoderTesting/.ipynb_checkpoints
+/EncoderTesting/__pycache__
+/EncoderTesting/__pycache__
+*.pyc
+*.pyc
