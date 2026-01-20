@@ -34,7 +34,7 @@ export default function Home() {
   const [backProp, setBackProp] = useState([]);
 
   //Copy api address from enviornemnt to allow dynamic changes 
-  const api = process.env.API_BASE_URL;
+  const api = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   //Reset setting to default value
   function returnToDefault() {
