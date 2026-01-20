@@ -1,0 +1,12 @@
+fastapi
+numpy<2
+python-multipart
+matplotlib
+Pillow
+starlette
+troch
+torchvision
+onnxruntime
+rembg
+scikit-image
+lpipis
