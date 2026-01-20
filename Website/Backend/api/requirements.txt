@@ -4,7 +4,7 @@ python-multipart
 matplotlib
 Pillow
 starlette
-troch
+torch
 torchvision
 onnxruntime
 rembg
