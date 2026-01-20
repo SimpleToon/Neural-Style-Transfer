@@ -33,6 +33,9 @@ export default function Home() {
   const [foreProp, setForeProp] = useState([]);
   const [backProp, setBackProp] = useState([]);
 
+  //Copy api address from enviornemnt to allow dynamic changes 
+  const api = process.env.API_BASE_URL;
+
   //Reset setting to default value
   function returnToDefault() {
     setDynamic(false);
@@ -222,7 +225,7 @@ export default function Home() {
     form.append("backAlpha", backAlpha);
 
     //Awaiting response from API
-    const response = await fetch("http://localhost:8000/stylisation", {
+    const response = await fetch(`${api}/stylisation`, {
       method: "POST",
       body: form,
     });
