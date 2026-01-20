@@ -294,7 +294,7 @@ export default function Home() {
           </div>
           <div className="flex justify-around p-2">
             {/*Add style image button */}
-            <label className="text-lg h-full flex justify-center items-center bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[120px] shadow-md hover:shadow-xl">
+            <label className="text-lg h-full flex justify-center items-center bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[140px] shadow-md hover:shadow-xl">
               +Add Image
               <input type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleStyleImages} />
             </label>
