@@ -31,3 +31,4 @@ EncoderTesting/.ipynb_checkpoints/NST-checkpoint.py
 *.pyc
 *.pyc
 .DS_Store
+/ModelsTesting/.ipynb_checkpoints

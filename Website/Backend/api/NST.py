@@ -12,7 +12,7 @@ import time
 
 
 class NST:
-    def __init__(self, prebuild_encoder = None, prebuild_decoder = None, device=None):
+    def __init__(self, prebuild_encoder = None, prebuild_decoder = None, colorPreservation = None, device=None):
         self.content_path = None
         self.style_paths = ()
         self.device = device or torch.device("cpu")
@@ -28,6 +28,7 @@ class NST:
         self.end = None
         self.tensorisedContent = None
         self.tensorisedStyles = None
+        self.colorPreservation = colorPreservation #Histogram, Pixel
 
     def saveImage(self, path):
         plt.imsave(path, self.stylisedImage)
@@ -77,6 +78,14 @@ class NST:
         for style in self.style_paths:
             self.styles += (ImageProcessor(style),)
 
+        #Apply Luminance extraction for luminance only style transfer
+        if self.colorPreservation == "Pixel":
+            self.content.extractLuminanceDetail()
+            for s in self.styles:
+                #Create luminance only rgb
+                s.extractLuminanceDetail()
+            
+
         content = self.content
         styles = self.styles
 
@@ -93,6 +102,7 @@ class NST:
         return contentFeature, styleFeatures
 
     #Based on https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_histogram_matching.html
+    #Color histogram
     def preserveColor(self, styledImg):
         #Preprocess content image to numpy and range of 0-1
         contentImg = np.array(self.content.resizedImage())/255
@@ -101,7 +111,7 @@ class NST:
         return preservedImg
 
 
-    def decoding(self, output, colorPreserve = False):
+    def decoding(self, output):
         #Decode output
         decodedOutput = self.decoder(output)
         d1,d2,h,w = decodedOutput.shape
@@ -109,14 +119,19 @@ class NST:
         #Resize image
         if h != self.content.imageSize or w != self.content.imageSize:
             decodedOutput = nn.functional.interpolate(decodedOutput, size=(self.content.imageSize, self.content.imageSize), mode="bilinear", align_corners=False)
-            
+        
         #Convert back to image - remove tensor, convert to numpy, and restructure
         self.stylisedTensor = decodedOutput.detach().clamp(0, 1)
         self.stylisedImage = self.stylisedTensor.squeeze(0).permute(1,2,0).cpu().numpy()
         
         #Color histogram color matching to preserve color
-        if colorPreserve:
+        if self.colorPreservation == "Histogram":
             self.stylisedImage = self.preserveColor(self.stylisedImage)
+
+        #Apply color preservation by reapplying Chrominance
+        if self.colorPreservation == "Pixel":
+            img  = (self.stylisedImage * 255).clip(0, 255).astype("uint8") #Convert back to unint dtype to convert back to image
+            self.stylisedImage = self.content.applyChrominance(Image.fromarray(img))
 
         return self.stylisedImage
         

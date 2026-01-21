@@ -35,7 +35,7 @@ def deleteFile(style_paths, content_path, output_path):
 
 
 @api.post("/stylisation")
-async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] = File(...), alpha: float = Form(1.0), colorPreservation: bool = Form(False), dynamic: bool = Form(False), backIndex: list[int] = Form([]), foreIndex: list[int] = Form([]), foreAlpha: float = Form(1.0), backAlpha: float = Form(1.0), foreProp: list[float] = Form([]), backProp: list[float] = Form([])):
+async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] = File(...), alpha: float = Form(1.0), colorPreservation: bool = Form(False), preservationType: str = Form("Histogram"), dynamic: bool = Form(False), backIndex: list[int] = Form([]), foreIndex: list[int] = Form([]), foreAlpha: float = Form(1.0), backAlpha: float = Form(1.0), foreProp: list[float] = Form([]), backProp: list[float] = Form([])):
     #File uploading and saving logic based on https://stackoverflow.com/questions/63048825/how-to-upload-file-using-fastapi 
     #Check if any of the files is of incorrect format
     if content.content_type not in ["image/png", "image/jpeg"]:
@@ -73,14 +73,14 @@ async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] =
         output_path = os.path.join(temp, f"{file_id}_out.jpg")
 
         #Setup model
-        model = AdaIN(prebuild_encoder, prebuild_decoder)
+        model = AdaIN(prebuild_encoder, prebuild_decoder, colorPreservation = (preservationType if colorPreservation else None)) #Apply color preservation type
         model.setup()
         model.fit(content_path, style_paths)
         #Check for spatial control
         if dynamic:
-            model.spatialControl(foreProp, backProp, colorPreservation, foreIndex, backIndex, foreAlpha, backAlpha)
+            model.spatialControl(foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha)
         else:
-            model.pipeline(foreProp, alpha, colorPreservation)
+            model.pipeline(foreProp, alpha)
         model.saveImage(output_path)
 
         #Automatic file deletion using BackgroundTask based on https://stackoverflow.com/questions/64716495/how-to-delete-the-file-after-a-return-fileresponsefile-path#:~:text=You%20can%20delete%20a%20file,)):%20return%20FileResponse(file_path)

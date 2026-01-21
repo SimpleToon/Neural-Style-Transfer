@@ -17,8 +17,8 @@ else:
 
 #implementation based on https://github.com/naoto0804/pytorch-AdaIN
 class AdaIN(NST):
-    def __init__(self, prebuild_encoder = None, prebuild_decoder = None, device = device):
-        super().__init__(prebuild_encoder, prebuild_decoder, device)
+    def __init__(self, prebuild_encoder = None, prebuild_decoder = None, device = device, colorPreservation = None):
+        super().__init__(prebuild_encoder, prebuild_decoder, colorPreservation, device)
         self.encoder = self._vgg()
         self.decoder = self.vggDecoder()
         self.mse_loss = nn.MSELoss()
@@ -319,7 +319,7 @@ class AdaIN(NST):
         #Combine - prevent leak by using masks
         combinedFeature = foreMaskFeature * styledForeground + backMaskFeature * styledBackground
 
-        self.decoding(combinedFeature, colorPreservation)
+        self.decoding(combinedFeature)
 
     #Call pipeline and test time
     def pipeline(self, weights, alpha = 1.0, colorPreservation = False):
@@ -329,5 +329,5 @@ class AdaIN(NST):
         #Transformer
         features = self.stylisation(n_c,n_s, weights, alpha)
         #Decode
-        self.decoding(features, colorPreservation)
+        self.decoding(features)
         self.end = time.perf_counter()

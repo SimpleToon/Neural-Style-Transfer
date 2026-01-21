@@ -13,6 +13,7 @@ export default function Home() {
   const [expand, setExpand] = useState(false);
   const [dynamic, setDynamic] = useState(false);
   const [colorP, setColorP] = useState(false);
+  const [preserve, setPreserve] = useState("Histogram");
   const [styleImages, setStyleImages] = useState([]);
   const [contentImages, setContentImages] = useState(null);
   const [styleFiles, setStyleFile] = useState([]);
@@ -53,6 +54,7 @@ export default function Home() {
     setForeProp([]);
     setBackProp([]);
     setAuto(false);
+    setPreserve("Histogram");
   }
 
   //Display error for a short period
@@ -220,6 +222,7 @@ export default function Home() {
 
     form.append("alpha", alpha);
     form.append("colorPreservation", colorP);
+    form.append("preservationType", preserve)
     form.append("dynamic", dynamic);
     form.append("foreAlpha", foreAlpha);
     form.append("backAlpha", backAlpha);
@@ -257,7 +260,7 @@ export default function Home() {
 
     return () => clearTimeout(timer);
 
-  }, [auto, contentImages, styleImages, backgroundIndex, foregroundIndex, alpha, foreAlpha, backAlpha, model, foreProp, backProp, colorP])
+  }, [auto, contentImages, styleImages, backgroundIndex, foregroundIndex, alpha, foreAlpha, backAlpha, model, foreProp, backProp, colorP, preserve])
 
   return (
     <main className={`flex flex-col w-[1200px] items-center bg-zinc-50 font-sans dark:bg-black gap-2`}>
@@ -321,7 +324,7 @@ export default function Home() {
           <h2 className="text-2xl font-bold flex justify-center items-center p-2">Generated Image</h2>
           {/* Show loading screen when awaiting for stylised image*/}
           <div className="relative text-lg w-full aspect-square bg-gray-300/30 flex justify-center items-center">
-            {generatedImage ? (!loaded ? <img src={generatedImage} alt="output-preview" className="w-full aspect-square object-fill" /> : <Load />) : <span className="text-8xl border border-2 border-dotted rounded-full w-1/2 h-1/2 flex justify-center items-center">?</span>}
+            {loaded ? <Load /> : (generatedImage ? <img src={generatedImage} alt="output-preview" className="w-full aspect-square object-fill" /> : <span className="text-8xl border border-2 border-dotted rounded-full w-1/2 h-1/2 flex justify-center items-center">?</span>)}
           </div>
           {/* Download Button, download the generated image */}
           <div className="flex justify-around p-2">
@@ -332,7 +335,7 @@ export default function Home() {
       {/* Advance Section*/}
       <section className="w-full flex flex-col items-center justify-center">
         <div onClick={() => setExpand(!expand)} className="w-full bg-[#333333] text-[#FDDA00] font-bold py-2 px-4 flex justify-between items-center cursor-pointer select-none"><span>Advanced</span> <span className={`transition-transform text-2xl ml-auto duration-200 ${expand ? "rotate-180" : "rotate-0"}`}>&#9662;</span></div>
-        <div className={`w-full overflow-hidden transition-all duration-300 ease-in-out bg-gray-100 ${expand ? "max-h-70 py-3" : "max-h-0 py-0"}`}>
+        <div className={`w-full overflow-hidden transition-all duration-300 ease-in-out bg-gray-100 ${expand ? "h-70 py-3" : "max-h-0 py-0"}`}>
           <div className={`grid grid-cols-3 gap-4 ${expand ? "" : "hidden"}`}>
             {/* Base Option */}
             <div className="flex flex-col px-4 gap-5">
@@ -341,7 +344,13 @@ export default function Home() {
               {/* Spatial Transfer */}
               <ToggleSwitch label="Dynamic Transfer" value={dynamic} callback={setDynamic} />
               {/*Color Preservation */}
-              <ToggleSwitch label="Color Preservation" value={colorP} callback={setColorP} />
+              <div className="flex flex-col gap-2">
+                <ToggleSwitch label="Color Preservation" value={colorP} callback={setColorP} />
+                {colorP && <div className="w-full flex justify-around">
+                  <RadioSwitch label={"Histogram"} name={"preserve"} checked={preserve == "Histogram"} onChange={(label) => setPreserve(label)} />
+                  <RadioSwitch label={"Pixel"} name={"preserve"} checked={preserve == "Pixel"} onChange={(label) => setPreserve(label)} />
+                </div>}
+              </div>
               {/* Encoder Selection Radio selector*/}
               <div className="flex flex-col gap-2">
                 <h3 className="text-base font-bold">Encoder Selection</h3>
@@ -384,11 +393,13 @@ export default function Home() {
         </div>
       </Modal>
       {/* Error box */}
-      {error && (
-        <aside className={`fixed top-4 right-4 border-2 border-red-600 w-[20rem] bg-red-100 text-red-800 py-3 px-2 flex items-center ${visible ? "opacity-100" : "opacity-0"} transition-opacity duration-700`}>
-          {error}
-        </aside>
-      )}
-    </main>
+      {
+        error && (
+          <aside className={`fixed top-4 right-4 border-2 border-red-600 w-[20rem] bg-red-100 text-red-800 py-3 px-2 flex items-center ${visible ? "opacity-100" : "opacity-0"} transition-opacity duration-700`}>
+            {error}
+          </aside>
+        )
+      }
+    </main >
   );
 }

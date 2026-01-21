@@ -11,8 +11,12 @@ class ImageProcessor:
         self.path = path
         self.imageSize = imageSize
         self.originalImage = self.resizeImage(self.path, self.imageSize)
+        self.image = self.originalImage.copy() 
         self.bglessImage = None
         self.alphaOnly = None
+        self.Y = None
+        self.Cb = None
+        self.Cr = None
 
     #Resize image to specifed size for further processing
     @staticmethod
@@ -60,7 +64,7 @@ class ImageProcessor:
     def tensorisedImage(self, addDimension = 0):
         #Convert to tensor
         tensorise = transforms.ToTensor()
-        tensorisedImage = tensorise(self.originalImage)
+        tensorisedImage = tensorise(self.image)
 
         #Add dimension
         for i in range(addDimension):
@@ -70,3 +74,54 @@ class ImageProcessor:
 
     def resizedImage(self):
         return self.originalImage
+
+    def convertLuminanceChrominance(self):
+        return self.originalImage.convert("YCbCr")
+
+    def extractLuminanceDetail(self):
+        luminanceImg = self.convertLuminanceChrominance()
+        self.Y, self.Cb, self.Cr = luminanceImg.split()
+        
+        #Convert back to RGB with same Y value to keep shape
+        self.replaceImage(Image.merge("RGB", (self.Y,self.Y,self.Y)))
+
+    def applyChrominance(self, stylisedLuminance):
+        #Check if Cb and Cr exist, else throw error
+        if self.Cb is None or self.Cr is None:
+            raise Exception("No Cb Cr")
+
+        #Extract Y value from the Y-value only RGB image
+        styledLuminance = stylisedLuminance.split()[0]
+
+        #convert back to YCbCr and merge with extracted CbCr
+        chromImg =  Image.merge("YCbCr", (styledLuminance, self.Cb, self.Cr)).convert("RGB")
+        return np.array(chromImg)/255 #return as normlaised numpy
+
+    def replaceImage(self, img):
+        self.image = img
+
+    @staticmethod
+    def luminanceMatching(content, style):
+        luminanceContent = np.array(content.split()[0])
+        luminanceStyle = np.array(style.split()[0])
+
+        stdContent = luminanceContent.std()
+        meanContent = luminanceContent.mean()
+
+        #Prevent divison by zero
+        stdStyle = max(luminanceStyle.std(), 0.00001)
+        meanStyle = luminanceStyle.mean()
+
+        #Formular by Gatsy
+        #Ls' = (STDc/STDs) * (Ls - MEANs) + MEANc
+        matchedStyle = (stdContent/stdStyle) * (luminanceStyle - meanStyle) + meanContent
+        matchedStyle = np.clip(matchedStyle, 0, 255) #Constrain
+
+        #Convert to back to RGB image
+        Y = Image.fromarray(matchedStyle, mode="L")
+        return Image.merge("RGB", (Y, Y, Y))
+        
+
+            
+
+    
