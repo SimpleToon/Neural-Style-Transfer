@@ -278,7 +278,7 @@ class AdaIN(NST):
 
         return adaINOut
     
-    def spatialControl(self, foreWeights, backWeights, colorPreservation = False, foreground_style_index = [], background_style_index = [], foregroundAlpha = 1.0, backgroundAlpha = 1.0):
+    def spatialControl(self, foreWeights, backWeights, foreground_style_index = [], background_style_index = [], foregroundAlpha = 1.0, backgroundAlpha = 1.0):
 
         #Remove background and alpha
         self.content.removeBackground()
@@ -322,7 +322,7 @@ class AdaIN(NST):
         self.decoding(combinedFeature)
 
     #Call pipeline and test time
-    def pipeline(self, weights, alpha = 1.0, colorPreservation = False):
+    def pipeline(self, weights, alpha = 1.0):
         self.start = time.perf_counter()
         #Encode image
         n_c,n_s = self.encodeAll(self.tensorisedContent,self.tensorisedStyles)
