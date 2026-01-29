@@ -21,20 +21,17 @@ class NST:
         self.prebuild_encoder = prebuild_encoder
         self.prebuild_decoder = prebuild_decoder
         self.content = None
-        self.styles = ()
+        self.styles = []
         self.stylisedImage = None
         self.stylisedTensor = None
         self.start = None
         self.end = None
         self.tensorisedContent = None
         self.tensorisedStyles = None
-        self.colorPreservation = colorPreservation #Histogram, Pixel
+        self.colorPreservation = colorPreservation #Histogram, Luminance
 
     def saveImage(self, path):
         plt.imsave(path, self.stylisedImage)
-
-    def setPlugin(self,input):
-        self.plugin = input
 
     def evaluate(self):
         lpips = LPIPS()
@@ -53,7 +50,7 @@ class NST:
         self.tensorisedContent = None
         self.tensorisedStyles = None
         self.content = None
-        self.styles = ()
+        self.styles = []
         self.stylisedImage = None
         self.stylisedTensor = None
         self.content_path = None
@@ -72,14 +69,19 @@ class NST:
         self.content = ImageProcessor(self.content_path)
 
         #Clear stored styles to avoid duplication
-        self.styles = ()
+        self.styles = []
         
         #Load styles
-        for style in self.style_paths:
-            self.styles += (ImageProcessor(style),)
+        for i, style in enumerate(self.style_paths):
+            self.styles.append(ImageProcessor(style))
+            #Convert style image to content color
+            if self.colorPreservation == "Histogram":
+                newImg = self.preserveColor(self.styles[i])
+                self.styles[i].replaceImage(newImg)
+
 
         #Apply Luminance extraction for luminance only style transfer
-        if self.colorPreservation == "Pixel":
+        if self.colorPreservation == "Luminance":
             self.content.extractLuminanceDetail()
             for s in self.styles:
                 #Create luminance only rgb
@@ -103,12 +105,13 @@ class NST:
 
     #Based on https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_histogram_matching.html
     #Color histogram
-    def preserveColor(self, styledImg):
+    def preserveColor(self, styleImg):
         #Preprocess content image to numpy and range of 0-1
         contentImg = np.array(self.content.resizedImage())/255
+        styleImage = np.array(styleImg.resizedImage())/255
         #Apply color matching using skimage
-        preservedImg = match_histograms(styledImg, contentImg, channel_axis=-1)
-        return preservedImg
+        preservedImg = match_histograms(styleImage, contentImg, channel_axis=-1)
+        return preservedImg.astype(np.float32)
 
 
     def decoding(self, output):
@@ -125,11 +128,11 @@ class NST:
         self.stylisedImage = self.stylisedTensor.squeeze(0).permute(1,2,0).cpu().numpy()
         
         #Color histogram color matching to preserve color
-        if self.colorPreservation == "Histogram":
-            self.stylisedImage = self.preserveColor(self.stylisedImage)
+        # if self.colorPreservation == "Histogram":
+        #     self.stylisedImage = self.preserveColor(self.stylisedImage)
 
         #Apply color preservation by reapplying Chrominance
-        if self.colorPreservation == "Pixel":
+        if self.colorPreservation == "Luminance":
             img  = (self.stylisedImage * 255).clip(0, 255).astype("uint8") #Convert back to unint dtype to convert back to image
             self.stylisedImage = self.content.applyChrominance(Image.fromarray(img))
 

@@ -95,7 +95,7 @@ class ImageProcessor:
 
         #convert back to YCbCr and merge with extracted CbCr
         chromImg =  Image.merge("YCbCr", (styledLuminance, self.Cb, self.Cr)).convert("RGB")
-        return np.array(chromImg)/255 #return as normlaised numpy
+        return np.array(chromImg).astype(np.float32) /255 #return as normlaised numpy
 
     def replaceImage(self, img):
         self.image = img

@@ -15,7 +15,6 @@ else:
     device = torch.device("cpu")
 
 
-#implementation based on https://github.com/naoto0804/pytorch-AdaIN
 class AdaIN(NST):
     def __init__(self, prebuild_encoder = None, prebuild_decoder = None, device = device, colorPreservation = None):
         super().__init__(prebuild_encoder, prebuild_decoder, colorPreservation, device)
@@ -132,8 +131,8 @@ class AdaIN(NST):
             nn.Conv2d(64, 3, 3),
         )
 
-    #Adain implementation by nato0804
-    #Calcualte mean and variance
+    #Adain implementation by nato0804 
+    #Calcualte mean and variance (nato0804)
     def _calc_mean_std(self, feat, eps=1e-5):
         N, C = feat.size()[:2]
         feat_ = feat.view(N, C, -1)
@@ -141,14 +140,15 @@ class AdaIN(NST):
         std = feat_.var(dim=2).add(eps).sqrt().view(N, C, 1, 1)
         return mean, std
 
-    #Matching style with features 
+    #Matching style with features (nato0804)
     def _adain(self, content_feat, style_feat, alpha=1.0):
         c_mean, c_std = self._calc_mean_std(content_feat)
         s_mean, s_std = self._calc_mean_std(style_feat)
         normalized = (content_feat - c_mean) / c_std
         stylized = normalized * s_std + s_mean
         return alpha * stylized + (1 - alpha) * content_feat
-
+    
+    #Content loss (nato0804)
     def _calc_content_loss(self, input, target):
         #Fix shape unmatch issue
         if input.shape != target.shape:
@@ -156,6 +156,7 @@ class AdaIN(NST):
             input = nn.functional.interpolate(input, size=(target.shape[2],target.shape[3]), mode="bilinear", align_corners=False)
         return self.mse_loss(input, target)
 
+    #Style loss (nato0804)
     def _calc_style_loss(self, input, target):
         #Fix shape unmatch issue
         if input.shape != target.shape:
@@ -166,7 +167,7 @@ class AdaIN(NST):
         return self.mse_loss(input_mean, target_mean) + \
                self.mse_loss(input_std, target_std)
 
-
+    #Training module by nato0804
     def train(self, train_content_loader, train_style_loader, path_name,learn_rate = 1e-4, steps=160000, lr_decay = 5e-5, content_weight = 1.0, style_weight=1.0, log_interval = 500, epoch = 1):
         #freeze encoder
         self.encoder.to(self.device).eval()
@@ -274,6 +275,7 @@ class AdaIN(NST):
 
         #Combine styles 
         combinedFeatures = sum([a * b for a, b in zip(normalisedWeights, styleFeatures)])
+        
         adaINOut = self._adain(contentFeature, combinedFeatures, alpha)
 
         return adaINOut

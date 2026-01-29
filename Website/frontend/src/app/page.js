@@ -348,7 +348,7 @@ export default function Home() {
                 <ToggleSwitch label="Color Preservation" value={colorP} callback={setColorP} />
                 {colorP && <div className="w-full flex justify-around">
                   <RadioSwitch label={"Histogram"} name={"preserve"} checked={preserve == "Histogram"} onChange={(label) => setPreserve(label)} />
-                  <RadioSwitch label={"Pixel"} name={"preserve"} checked={preserve == "Pixel"} onChange={(label) => setPreserve(label)} />
+                  <RadioSwitch label={"Luminance"} name={"preserve"} checked={preserve == "Luminance"} onChange={(label) => setPreserve(label)} />
                 </div>}
               </div>
               {/* Encoder Selection Radio selector*/}
