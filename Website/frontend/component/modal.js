@@ -17,7 +17,7 @@ function Modal({ children, modalState, close, title, tooltip = false, toolText =
             {/* Center Modal */}
             <div className="w-3/4 lg:w-1/2  max-h-1/2 bg-white z-20 flex flex-col justify-center items-center p-2 relative" onClick={(e) => e.stopPropagation()}>
                 {/*Header*/}
-                <h2 className="text-2xl font-bold">{title}{tooltip && <ToolTip text={toolText} />}</h2>
+                <h2 className="text-xl md:text-2xl font-bold">{title}{tooltip && <ToolTip text={toolText} />}</h2>
                 {children}
                 {/*Close button */}
                 <button className="absolute right-3 top-3 cursor-pointer" onClick={close}>
