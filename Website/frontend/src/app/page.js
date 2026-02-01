@@ -6,6 +6,8 @@ import Selector from "@/component/selector";
 import Modal from "@/component/modal";
 import RadioSwitch from "@/component/radio";
 import Slider from "@/component/slider";
+import ToolTip from "@/component/tooltip";
+import { contentSampleImages, styleSampleImages } from "@/component/images"
 import { useState, useEffect } from "react";
 
 
@@ -19,6 +21,8 @@ export default function Home() {
   const [styleFiles, setStyleFile] = useState([]);
   const [contentFile, setContentFile] = useState(null);
   const [modalState, setModalState] = useState(false);
+  const [contentModal, setContentModal] = useState(false);
+  const [styleModal, setStyleModal] = useState(false);
   const [model, setModel] = useState("VGG-19");
   const [generatedImage, setGeneratedImage] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -185,6 +189,19 @@ export default function Home() {
     e.target.value = "";
   }
 
+  //Convert image url to file for sample images
+  async function convertToFile(url) {
+    const data = await fetch(url)
+    const imgBlob = await data.blob()
+
+
+    const file = new File([imgBlob], url, {
+      type: imgBlob.type,
+    })
+
+    return file
+  }
+
   //send data to API
   async function submitImage() {
     //Throw an error when no style or content uploaded
@@ -220,6 +237,7 @@ export default function Home() {
       form.append("backProp", e)
     })
 
+    form.append("model", model)
     form.append("alpha", alpha);
     form.append("colorPreservation", colorP);
     form.append("preservationType", preserve)
@@ -263,54 +281,59 @@ export default function Home() {
   }, [auto, contentImages, styleImages, backgroundIndex, foregroundIndex, alpha, foreAlpha, backAlpha, model, foreProp, backProp, colorP, preserve])
 
   return (
-    <main className={`flex flex-col w-[1200px] items-center bg-zinc-50 font-sans dark:bg-black gap-2`}>
+    <main className="relative flex flex-col w-full max-w-[1200px] mx-auto items-center bg-zinc-50 font-sans dark:bg-black gap-2">
       {/* Title */}
       <h1 className="text-4xl flex flex-col justify-center items-center font-bold text-[#FDDA00] bg-[#333333] w-full p-4">Neural Style Transfer</h1>
       {/*Content & Style Image section */}
-      <section className="w-full flex justify-around">
+      <section className="w-full flex flex-col items-center justify-center md:flex-row md:justify-around">
         {/*Content Section */}
-        <div className="w-1/3">
-          <h2 className="text-2xl font-bold flex justify-center items-center p-2">Content Image</h2>
+        <div className="md:w-1/3 w-3/4">
+          <h2 className="text-2xl font-bold flex justify-center items-center p-2 gap-1">Content Image <ToolTip text="Upload any image you want apply style to." /></h2>
           {/* Set content image if it exist */}
           <div className={`relative text-lg w-full aspect-square ${contentImages ? "" : "bg-gray-300/30"} flex justify-center items-center`}>
             {contentImages ? <img src={contentImages} alt="content-preview" className="w-full aspect-square object-fill" /> : "Upload Image"}
           </div>
-          <div className="flex justify-around p-2">
+          <div className="flex justify-around p-2 text-lg ">
             {/*Upload Button*/}
-            <label className="text-lg h-full flex justify-center items-center bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[120px] shadow-md hover:shadow-xl">
+            <label className="h-full flex justify-center items-center bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[90px] shadow-md hover:shadow-xl">
               Upload
               <input type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleContentImage} />
             </label>
             {/* Content Reset Button */}
-            <button className="text-lg h-full bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[120px] shadow-md hover:shadow-xl" type="submit" onClick={() => { setContentImages(null); setContentFile(null); }}>Reset</button>
+            <button className="h-full bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[90px] shadow-md hover:shadow-xl" type="submit" onClick={() => { setContentImages(null); setContentFile(null); }}>Reset</button>
+            {/* Content Sample Button */}
+            <button className="h-full bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[90px] shadow-md hover:shadow-xl" type="submit" onClick={() => { setContentModal(true) }}>Sample</button>
           </div>
         </div>
         {/*Style Section*/}
-        <div className="w-1/3">
-          <h2 className="text-2xl font-bold flex justify-center items-center p-2">Style Image</h2>
+        <div className="md:w-1/3 w-3/4">
+          <h2 className="text-2xl font-bold flex justify-center items-center p-2 gap-1">Style Image<ToolTip text="Use artisitc image for style for best result. Multiple style images allowed" /></h2>
           <div className={`relative text-lg w-full aspect-square ${styleImages.length > 0 ? "" : "bg-gray-300/30"} flex justify-center items-center`}>
             {/* Set style image if it exist */}
             {(styleImages.length > 0) ? <img src={styleImages[0]} alt="style-preview" className="w-full aspect-square object-fill" /> :
               "Upload Image"}
             {/* Display smaller sub-image for 2nd style */}
-            {(styleImages.length > 1) && <div className="absolute -left-1/8 -top-1/8 w-1/4 aspect-square flex items-center justify-center cursor-pointer" onClick={() => setModalState(true)}> <img src={styleImages[1]} alt="style-preview" className="w-full aspect-square object-fill" />
+            {(styleImages.length > 1) && <div className="absolute -left-1/10 -top-1/10 w-1/4 aspect-square flex items-center justify-center cursor-pointer" onClick={() => setModalState(true)}>
+              <img src={styleImages[1]} alt="style-preview" className="w-full aspect-square object-fill" />
               {/* Display additional image number for exceeding 2 styles */}
-              {styleImages.length > 2 && <span className="absolute text-5xl font-bold text-black/50 ">+{styleImages.length - 2}</span>}
+              {styleImages.length > 2 && <span className="absolute text-5xl font-bold text-white/90 bg-black/50 w-full aspect-square flex justify-center items-center">+{styleImages.length - 2}</span>}
             </div>}
           </div>
           <div className="flex justify-around p-2">
             {/*Add style image button */}
-            <label className="text-lg h-full flex justify-center items-center bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[140px] shadow-md hover:shadow-xl">
+            <label className="text-lg h-full flex justify-center items-center bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-1 py-0.5 w-[140px] shadow-md hover:shadow-xl">
               +Add Image
               <input type="file" accept="image/png, image/jpeg" className="hidden" onChange={handleStyleImages} />
             </label>
             {/* Reset style image button */}
-            <button className="text-lg h-full bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[120px] shadow-md hover:shadow-xl" type="submit" onClick={() => { setStyleImages([]); setStyleFile([]); }}>Reset</button>
+            <button className="text-lg h-full bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[90px] shadow-md hover:shadow-xl" type="submit" onClick={() => { setStyleImages([]); setStyleFile([]); }}>Reset</button>
+            {/* Style Sample Button */}
+            <button className="text-lg h-full bg-[#FDDA00] hover:bg-[#D1A200] border border-[#333333] rounded-lg font-bold px-2 py-0.5 w-[90px] shadow-md hover:shadow-xl" type="submit" onClick={() => { setStyleModal(true) }}>Sample</button>
           </div>
         </div>
       </section>
       {/*Global Control Buttons section */}
-      <section className="w-full flex justify-around p-4">
+      <section className="w-full flex flex-col items-center gap-3 p-4 md:flex-row md:justify-around">
         {/* Generate button, trigger Api call */}
         <button className="text-3xl text-[#FDDA00] h-full bg-[#333333] hover:bg-[#000] hover:text-[#D1A200] border-3 border-[#333333] rounded-lg font-bold px-3 py-3 w-[200px] shadow-md hover:shadow-xl" onClick={() => submitImage()} >Generate</button>
         {/*Automatic button, click to enable auto generation. Press state persist till re-selected */}
@@ -320,7 +343,7 @@ export default function Home() {
       </section>
       {/* Generated Image Section */}
       <section className="w-full flex flex-col items-center justify-center p-4">
-        <div className="w-1/3">
+        <div className="md:w-1/3 w-3/4">
           <h2 className="text-2xl font-bold flex justify-center items-center p-2">Generated Image</h2>
           {/* Show loading screen when awaiting for stylised image*/}
           <div className="relative text-lg w-full aspect-square bg-gray-300/30 flex justify-center items-center">
@@ -335,17 +358,17 @@ export default function Home() {
       {/* Advance Section*/}
       <section className="w-full flex flex-col items-center justify-center">
         <div onClick={() => setExpand(!expand)} className="w-full bg-[#333333] text-[#FDDA00] font-bold py-2 px-4 flex justify-between items-center cursor-pointer select-none"><span>Advanced</span> <span className={`transition-transform text-2xl ml-auto duration-200 ${expand ? "rotate-180" : "rotate-0"}`}>&#9662;</span></div>
-        <div className={`w-full overflow-hidden transition-all duration-300 ease-in-out bg-gray-100 ${expand ? "h-70 py-3" : "max-h-0 py-0"}`}>
-          <div className={`grid grid-cols-3 gap-4 ${expand ? "" : "hidden"}`}>
+        <div className={`w-full overflow-hidden transition-all duration-300 ease-in-out bg-gray-100 ${expand ? "h-auto py-3" : "max-h-0 py-0"}`}>
+          <div className={`grid grid-cols-1 md:grid-cols-3 md:gap-4 gap-10 `}>
             {/* Base Option */}
             <div className="flex flex-col px-4 gap-5">
               {/* Basic Style /Alpha control */}
-              <LogSlider title="Style Strength" disabled={dynamic} callback={setAlpha} reset={resetTrig} />
+              <LogSlider title="Style Strength" disabled={dynamic} callback={setAlpha} reset={resetTrig} tooltip={true} toolText='Increased alpha value to increase the style strength.' />
               {/* Spatial Transfer */}
-              <ToggleSwitch label="Dynamic Transfer" value={dynamic} callback={setDynamic} />
+              <ToggleSwitch label="Dynamic Transfer" value={dynamic} callback={setDynamic} tooltip={true} toolText='Enable for background and foreground segregation' />
               {/*Color Preservation */}
               <div className="flex flex-col gap-2">
-                <ToggleSwitch label="Color Preservation" value={colorP} callback={setColorP} />
+                <ToggleSwitch label="Color Preservation" value={colorP} callback={setColorP} tooltip={true} toolText='Enable to retain original image color' />
                 {colorP && <div className="w-full flex justify-around">
                   <RadioSwitch label={"Histogram"} name={"preserve"} checked={preserve == "Histogram"} onChange={(label) => setPreserve(label)} />
                   <RadioSwitch label={"Luminance"} name={"preserve"} checked={preserve == "Luminance"} onChange={(label) => setPreserve(label)} />
@@ -353,7 +376,7 @@ export default function Home() {
               </div>
               {/* Encoder Selection Radio selector*/}
               <div className="flex flex-col gap-2">
-                <h3 className="text-base font-bold">Encoder Selection</h3>
+                <h3 className="text-base font-bold">Encoder Selection <ToolTip text="Different encoder affect stylisation result." /></h3>
                 <div className="flex gap-2">
                   <RadioSwitch label={"VGG-19"} name={"model"} checked={model == "VGG-19"} onChange={(label) => setModel(label)} />
                   <RadioSwitch label={"Res50"} name={"model"} checked={model == "Res50"} onChange={(label) => setModel(label)} />
@@ -363,35 +386,76 @@ export default function Home() {
             </div>
             {/* Dynamic Transfer Options */}
             <div className="flex flex-col px-4 gap-5">
-              <LogSlider title="Foreground Style Strength" disabled={!dynamic} callback={setForeAlpha} reset={resetTrig} />
-              <LogSlider title="Background Style Strength" disabled={!dynamic} callback={setBackAlpha} reset={resetTrig} />
+              <LogSlider title="Foreground Style Strength" disabled={!dynamic} callback={setForeAlpha} reset={resetTrig} tooltip={true} toolText='Adjust foreground style strength' />
+              <LogSlider title="Background Style Strength" disabled={!dynamic} callback={setBackAlpha} reset={resetTrig} tooltip={true} toolText='Adjust background style strength' />
             </div>
-            <div className="flex px-4 gap-2 ">
-              {/* Selection box for style control */}
-              <Selector inputArray={styleImages} title="Foreground Styles" disabled={!dynamic} callback={setForegroundIndex} reset={resetTrig} />
-              <Selector inputArray={styleImages} title="Background Styles" disabled={!dynamic} callback={setBackgroundIndex} reset={resetTrig} />
+            <div className="flex flex-col h-full min-h-0 px-2">
+              <h2 className='font-bold text-base flex-shrink-0'>Style Selector <ToolTip text="Select styles to apply to foreground or background" /></h2>
+              <div className='flex gap-2 flex-1 min-h-50 max-h-50'>
+                {/* Selection box for style control */}
+                <Selector inputArray={styleImages} title="Foreground Styles" disabled={!dynamic} callback={setForegroundIndex} reset={resetTrig} />
+                <Selector inputArray={styleImages} title="Background Styles" disabled={!dynamic} callback={setBackgroundIndex} reset={resetTrig} />
+              </div>
             </div>
           </div>
         </div>
       </section>
-      {/* Modal for style image */}
-      <Modal modalState={modalState} close={() => setModalState(false)} title={"Style Images"}>
-        <div className="p-4 w-full h-full overflow-y-auto grid grid-cols-3 gap-4">
+      {/* Modal for showing style image */}
+      <Modal modalState={modalState} close={() => setModalState(false)} title={"Style Images"} tooltip={true} toolText='Adjust style weights to manage style contribution'>
+        <div className="p-4 w-full h-full overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4">
           {styleImages.map((img, i) =>
             <div className="w-full flex flex-col items-center justify-center" key={`Style-${i + 1}`}>
               <img src={img} alt={`style-preview-${i + 1}`} className="w-full aspect-square object-fill" />
               <h3 className="text-sm font-bold">{`Style ${i + 1}`}</h3>
               {/* Slider to customise style strength proportion */}
               {/* Show foreground and background slider */}
-              <Slider callback={(e) => updateStyleStrength(e, i, setForeProp)} value={!dynamic ? (foreProp[i] || 0) : (foregroundIndex.includes(i) ? foreProp[i] : 0)} disabled={dynamic ? !foregroundIndex.includes(i) : false} label={dynamic ? "Foreground Weight" : "Style Weight"} />
+              <Slider callback={(e) => updateStyleStrength(e, i, setForeProp)} value={!dynamic ? (Number(foreProp[i]) || 0) : (foregroundIndex.includes(i) ? (Number(foreProp[i]) || 0) : 0)} disabled={dynamic ? !foregroundIndex.includes(i) : false} label={dynamic ? "Foreground Weight" : "Style Weight"} />
               {/* Hide background slider when dynamic transfer isnt activated*/}
               {
-                dynamic && <Slider callback={(e) => updateStyleStrength(e, i, setBackProp)} value={backgroundIndex.includes(i) ? backProp[i] : 0} disabled={dynamic ? !backgroundIndex.includes(i) : false} label={"Background Weight"} color={"accent-[#CCB100]"} />
+                dynamic && <Slider callback={(e) => updateStyleStrength(e, i, setBackProp)} value={backgroundIndex.includes(i) ? (Number(backProp[i]) || 0) : 0} disabled={dynamic ? !backgroundIndex.includes(i) : false} label={"Background Weight"} color={"accent-[#CCB100]"} />
               }
             </div>
           )}
         </div>
       </Modal>
+      {/*Content Sample Model */}
+      <Modal modalState={contentModal} close={() => setContentModal(false)} title={"Sample Content Images"} tooltip={true} toolText='Select sample content image to use'>
+        <div className="p-4 w-full h-full overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Show all content image */}
+          {
+            contentSampleImages.map((img, i) =>
+              <div className="w-full flex flex-col items-center justify-center" key={`Style-${i + 1}`}>
+                <img src={img} alt={`content-sample-${i + 1}`} className="w-full aspect-square object-fill cursor-pointer" onClick={async () => {
+                  const file = await convertToFile(img);
+                  setContentFile(file);
+                  setContentImages(img);
+                  setContentModal(false);
+                }} />
+                <h3 className="text-sm font-bold">{`Content Sample ${i + 1}`}</h3>
+              </div>
+            )
+          }
+        </div>
+      </Modal>
+      {/*Style Sample Model */}
+      <Modal modalState={styleModal} close={() => setStyleModal(false)} title={"Sample Style Images"} tooltip={true} toolText='Select sample style image to use'>
+        <div className="p-4 w-full h-full overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Show all style image */}
+          {
+            styleSampleImages.map((img, i) =>
+              <div className="w-full flex flex-col items-center justify-center" key={`Style-${i + 1}`}>
+                <img src={img} alt={`style-sample-${i + 1}`} className="w-full aspect-square object-fill cursor-pointer" onClick={async () => {
+                  const file = await convertToFile(img)
+                  setStyleFile(prev => [...prev, file])
+                  setStyleImages(prev => [...prev, img])
+                }} />
+                <h3 className="text-sm font-bold">{`Style Sample ${i + 1}`}</h3>
+              </div>
+            )
+          }
+        </div>
+      </Modal>
+
       {/* Error box */}
       {
         error && (

@@ -28,9 +28,9 @@ function Selector({ inputArray, callback, reset, title = "", disabled = false })
     }, [reset])
 
     return (
-        <div className="relative w-1/2 h-60">
+        <div className="w-1/2 flex flex-col min-h-0 ">
             <h2 className={`w-full text-base font-bold ${disabled ? "text-gray-400" : "text-black"}`}>{title}</h2>
-            <div className="absolute w-full overflow-y-auto overflow-x-hidden bg-gray-200 mx-1 px-3 py-1 flex flex-col gap-2 max-h-full min-h-full">
+            <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden bg-gray-200 mx-1 px-3 py-1 flex flex-col gap-2">
                 {inputArray.map((e, i) =>
                     <ToggleSwitch key={i} label={`Style ${i + 1}`} value={selected.includes(i)} callback={(checked) => updateIndex(i, checked)} disabled={disabled} textsize="text-sm" />
                 )}
