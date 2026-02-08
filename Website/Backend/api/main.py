@@ -41,6 +41,23 @@ def deleteFile(style_paths, content_path, output_path):
     if os.path.exists(output_path):
         os.remove(output_path)
 
+#Model setup
+def modelSetup(prebuild_encoder, prebuild_decoder, colorPreservation, preservationType, content_path, style_paths, dynamic, foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha, alpha,output_path, model, encoderStruct=None):
+    #Setup model
+    adaIN = AdaIN(prebuild_encoder, prebuild_decoder, colorPreservation = (preservationType if colorPreservation else None)) #Apply color preservation type
+    if model != "VGG-19": 
+        adaIN.uploadEncoder(encoderStruct) 
+    adaIN.setup()
+    adaIN.fit(content_path, style_paths)
+    #Check for spatial control
+    if dynamic:
+        adaIN.spatialControl(foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha)
+    else:
+        adaIN.pipeline(foreProp, alpha)
+    #Save image
+    adaIN.saveImage(output_path)
+
+
 
 @api.post("/stylisation")
 async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] = File(...), alpha: float = Form(1.0), colorPreservation: bool = Form(False), preservationType: str = Form("Histogram"), dynamic: bool = Form(False), backIndex: list[int] = Form([]), foreIndex: list[int] = Form([]), foreAlpha: float = Form(1.0), backAlpha: float = Form(1.0), foreProp: list[float] = Form([]), backProp: list[float] = Form([]), model: str = Form("VGG-19")):
@@ -83,42 +100,18 @@ async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] =
                 shutil.copyfileobj(s.file, f)
 
         output_path = os.path.join(temp, f"{file_id}_out.jpg")
-        
+
+ 
+        #NST inference
         if model == "VGG-19":
-            #Setup model
-            adaIN = AdaIN(prebuild_encoder, prebuild_decoder, colorPreservation = (preservationType if colorPreservation else None)) #Apply color preservation type
-            adaIN.setup()
-            adaIN.fit(content_path, style_paths)
-            #Check for spatial control
-            if dynamic:
-                adaIN.spatialControl(foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha)
-            else:
-                adaIN.pipeline(foreProp, alpha)
-            adaIN.saveImage(output_path)
+            modelSetup(prebuild_encoder, prebuild_decoder, colorPreservation, preservationType,content_path, style_paths,dynamic,foreProp,backProp,foreIndex,backIndex,foreAlpha,backAlpha,alpha, output_path, model)
+
         elif model == "Res50":
-            #Setup model
-            adaIN = AdaIN(None, prebuild_decoder_res50, colorPreservation = (preservationType if colorPreservation else None)) #Apply color preservation type
-            adaIN.uploadEncoder(res50_encoder) #Setup res50 encoder
-            adaIN.setup()
-            adaIN.fit(content_path, style_paths)
-            #Check for spatial control
-            if dynamic:
-                adaIN.spatialControl(foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha)
-            else:
-                adaIN.pipeline(foreProp, alpha)
-            adaIN.saveImage(output_path)
+            modelSetup(None, prebuild_decoder_res50, colorPreservation, preservationType,content_path, style_paths, dynamic,foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha, alpha, output_path, model, res50_encoder)
+          
         elif model == "DenseNet":
-            #Setup model
-            adaIN = AdaIN(None, prebuild_decoder_dn, colorPreservation = (preservationType if colorPreservation else None)) #Apply color preservation type
-            adaIN.uploadEncoder(dn_encoder) #Setup DenseNet encoder
-            adaIN.setup()
-            adaIN.fit(content_path, style_paths)
-            #Check for spatial control
-            if dynamic:
-                adaIN.spatialControl(foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha)
-            else:
-                adaIN.pipeline(foreProp, alpha)
-            adaIN.saveImage(output_path)
+             modelSetup(None, prebuild_decoder_dn, colorPreservation, preservationType,content_path, style_paths, dynamic,foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha, alpha, output_path, model, dn_encoder)
+          
         
 
         #Automatic file deletion using BackgroundTask based on https://stackoverflow.com/questions/64716495/how-to-delete-the-file-after-a-return-fileresponsefile-path#:~:text=You%20can%20delete%20a%20file,)):%20return%20FileResponse(file_path)
