@@ -112,8 +112,6 @@ async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] =
         elif model == "DenseNet":
              modelSetup(None, prebuild_decoder_dn, colorPreservation, preservationType,content_path, style_paths, dynamic,foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha, alpha, output_path, model, dn_encoder)
           
-        
-
         #Automatic file deletion using BackgroundTask based on https://stackoverflow.com/questions/64716495/how-to-delete-the-file-after-a-return-fileresponsefile-path#:~:text=You%20can%20delete%20a%20file,)):%20return%20FileResponse(file_path)
         return FileResponse(output_path, background = BackgroundTask(deleteFile, style_paths, content_path,output_path))
 
