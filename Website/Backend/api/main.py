@@ -45,7 +45,7 @@ def deleteFile(style_paths, content_path, output_path):
 def modelSetup(prebuild_encoder, prebuild_decoder, colorPreservation, preservationType, content_path, style_paths, dynamic, foreProp, backProp, foreIndex, backIndex, foreAlpha, backAlpha, alpha,output_path, model, encoderStruct=None):
     #Setup model
     adaIN = AdaIN(prebuild_encoder, prebuild_decoder, colorPreservation = (preservationType if colorPreservation else None)) #Apply color preservation type
-    if model != "VGG-19": 
+    if model != "VGG-19":  #Upload encoder when necessary
         adaIN.uploadEncoder(encoderStruct) 
     adaIN.setup()
     adaIN.fit(content_path, style_paths)

@@ -181,6 +181,14 @@ export default function Home() {
   function handleStyleImages(e) {
     const [imageFile, url] = handleImage(e);
 
+    //Set a cap on image
+    if (styleImages.length > 10) {
+      setError("Images exceed limit");
+      e.target.value = "";
+      return
+    }
+
+
     //Add upon new images
     setStyleImages([...styleImages, ...url]);
     setStyleFile([...styleFiles, ...imageFile]);
@@ -412,7 +420,7 @@ export default function Home() {
               <Slider callback={(e) => updateStyleStrength(e, i, setForeProp)} value={!dynamic ? (Number(foreProp[i]) || 0) : (foregroundIndex.includes(i) ? (Number(foreProp[i]) || 0) : 0)} disabled={dynamic ? !foregroundIndex.includes(i) : false} label={dynamic ? "Foreground Weight" : "Style Weight"} />
               {/* Hide background slider when dynamic transfer isnt activated*/}
               {
-                dynamic && <Slider callback={(e) => updateStyleStrength(e, i, setBackProp)} value={backgroundIndex.includes(i) ? (Number(backProp[i]) || 0) : 0} disabled={dynamic ? !backgroundIndex.includes(i) : false} label={"Background Weight"} color={"accent-[#CCB100]"} />
+                dynamic && <Slider callback={(e) => updateStyleStrength(e, i, setBackProp)} value={backgroundIndex.includes(i) ? (Number(backProp[i]) || 0) : 0} disabled={dynamic ? !backgroundIndex.includes(i) : false} label={"Background Weight"} color={"accent-[#6495ED]"} />
               }
             </div>
           )}
@@ -446,6 +454,11 @@ export default function Home() {
               <div className="w-full flex flex-col items-center justify-center" key={`Style-${i + 1}`}>
                 <img src={img} alt={`style-sample-${i + 1}`} className="w-full aspect-square object-fill cursor-pointer" onClick={async () => {
                   const file = await convertToFile(img)
+                  //Set a cap on image
+                  if (styleImages.length > 10) {
+                    setError("Images exceed limit");
+                    return
+                  }
                   setStyleFile(prev => [...prev, file])
                   setStyleImages(prev => [...prev, img])
                 }} />
