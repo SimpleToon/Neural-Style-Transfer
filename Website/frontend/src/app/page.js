@@ -184,7 +184,7 @@ export default function Home() {
     //Set a cap on image
     if (styleImages.length > 10) {
       setError("Images exceed limit");
-      setVisible(true)
+      showError()
       e.target.value = "";
       return
     }
@@ -458,7 +458,7 @@ export default function Home() {
                   //Set a cap on image
                   if (styleImages.length > 10) {
                     setError("Images exceed limit");
-                    setVisible(true);
+                    showError();
                     return
                   }
                   setStyleFile(prev => [...prev, file])
