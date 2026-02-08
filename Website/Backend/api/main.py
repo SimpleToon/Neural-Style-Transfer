@@ -52,6 +52,10 @@ async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] =
     for s in styles:
         if s.content_type not in ["image/png", "image/jpeg"]:
             raise HTTPException(415, f"Unsupported image type for {s.filename}")
+        
+    #Check if input styles exceed limit
+    if len(styles) > 10:
+        raise HTTPException(415, f"Style images exceeds maximum of 10")
     
     #Generate file id
     file_id = uuid.uuid4()
@@ -124,5 +128,14 @@ async def stylisation(content: UploadFile = File(...), styles:list[UploadFile] =
         print(str(e))
         raise HTTPException(500, str(e))
     
+    finally:
+        #Always clean up residue regardless success/failure
+        #Clean up style
+        for path in style_paths:
+            if os.path.exists(path):
+                os.remove(path)
+        #Clean up content
+        if os.path.exists(content_path):
+            os.remove(content_path)
         
             
