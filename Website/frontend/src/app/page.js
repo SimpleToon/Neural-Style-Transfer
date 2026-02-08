@@ -183,8 +183,7 @@ export default function Home() {
 
     //Set a cap on image
     if (styleImages.length > 10) {
-      setError("Images exceed limit");
-      showError()
+      showError("Exceed image limit of 10");
       e.target.value = "";
       return
     }
@@ -457,8 +456,7 @@ export default function Home() {
                   const file = await convertToFile(img)
                   //Set a cap on image
                   if (styleImages.length > 10) {
-                    setError("Images exceed limit");
-                    showError();
+                    showError("Exceed image limit of 10");
                     return
                   }
                   setStyleFile(prev => [...prev, file])
