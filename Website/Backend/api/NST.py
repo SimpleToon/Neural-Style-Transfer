@@ -127,9 +127,6 @@ class NST:
         self.stylisedTensor = decodedOutput.detach().clamp(0, 1)
         self.stylisedImage = self.stylisedTensor.squeeze(0).permute(1,2,0).cpu().numpy()
         
-        #Color histogram color matching to preserve color
-        # if self.colorPreservation == "Histogram":
-        #     self.stylisedImage = self.preserveColor(self.stylisedImage)
 
         #Apply color preservation by reapplying Chrominance
         if self.colorPreservation == "Luminance":

@@ -59,6 +59,9 @@ export default function Home() {
     setBackProp([]);
     setAuto(false);
     setPreserve("Histogram");
+    setForeAlpha(1.0);
+    setBackAlpha(1.0);
+    setAlpha(1.0);
   }
 
   //Display error for a short period
